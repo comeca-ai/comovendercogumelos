@@ -1,0 +1,6 @@
+name = "comovendercogumelos"
+pages_build_output_dir = "site/dist"
+compatibility_date = "2026-09-30"
+
+# O pipeline semanal grava JSONs em painel/dados/ e faz commit.
+# Pages publica site/ (Astro) e painel/ vira painel.seudominio ou /painel via rota no Worker.
