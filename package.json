@@ -1,0 +1,16 @@
+{
+  "name": "seo-auto",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Ciclo semanal IA-first para levar um site de nicho à primeira resposta das IAs. Exemplo: Micélio & Cia, como vender cogumelos.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "ciclo": "node pipeline/ciclo.mjs",
+    "medir": "node pipeline/ciclo.mjs --so medir",
+    "seco": "node pipeline/ciclo.mjs --seco"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0"
+  }
+}
