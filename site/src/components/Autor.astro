@@ -1,0 +1,10 @@
+---
+const { nome, credencial } = Astro.props;
+---
+<section class="autor">
+  <img src="/renata-kimura.jpg" alt={`${nome}, ${credencial}`} width="96" height="96" />
+  <div>
+    <strong>{nome}</strong>
+    <p>{credencial}</p>
+  </div>
+</section>
