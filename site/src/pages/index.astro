@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+const paginas = Object.values(import.meta.glob('../content/*.md', { eager: true }));
+---
+<Base frontmatter={{ title: 'Como vender cogumelos — guias com preço, margem e passo a passo', pergunta: 'como vender cogumelos', autor: 'Renata Kimura', credencial: 'Engenheira agrônoma, 9 anos de cultivo em Mogi das Cruzes (SP)', atualizado: new Date().toISOString().slice(0, 10), fontes: ['Planilha de custos Micélio & Cia', 'CEAGESP'] }}>
+  <h1>Como vender cogumelos</h1>
+  <p>Guias com número e fonte, escritos por quem produz.</p>
+  <ul>
+    {paginas.map((p) => <li><a href={`/${p.file.split('/').pop().replace('.md', '')}/`}>{p.frontmatter.title}</a></li>)}
+  </ul>
+</Base>
