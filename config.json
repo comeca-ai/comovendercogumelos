@@ -1,0 +1,22 @@
+{
+  "marca": "Micélio & Cia",
+  "dominio": "comovendercogumelos.com.br",
+  "aliases": ["Micelio & Cia", "Micélio e Cia", "micelioecia"],
+  "concorrentes_de_citacao": ["Sebrae", "Embrapa", "Mercado Livre", "CEAGESP"],
+  "motores": ["chatgpt-web", "gemini-web", "perplexity-web", "copilot-web", "google-ai-overview"],
+  "perguntas": "exemplos/perguntas.json",
+  "paginas_por_semana": 3,
+  "limiares": {
+    "pergunta_e_do_nicho": 0.7,
+    "pergunta_vira_cliente": 0.6,
+    "ja_temos_pagina": 0.5,
+    "primeira_frase_responde": 0.9,
+    "numero_tem_fonte": 0.9,
+    "publico_confianca": 0.8,
+    "acao_score_min": 2,
+    "sentimento_confianca": 0.6,
+    "review_relata_problema": 0.5
+  },
+  "teto_mensal_usd": 120,
+  "cron": "0 6 * * 1"
+}
