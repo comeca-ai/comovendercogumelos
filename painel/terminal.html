@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>micélio — terminal da máquina</title>
+<style>
+  :root{--bg:#0a0c10;--tx:#d7e0d0;--grn:#7ee787;--dim:#7a8578;--amb:#f5a623;--red:#f2555a;--blu:#6b8afd}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--tx);font-family:'JetBrains Mono','SF Mono',Menlo,monospace;
+       height:100vh;display:flex;flex-direction:column}
+  #tela{flex:1;overflow-y:auto;padding:16px 20px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .g{color:var(--grn)} .d{color:var(--dim)} .a{color:var(--amb)} .r{color:var(--red)} .b{color:var(--blu)}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--grn);animation:bl 1s steps(1) infinite;vertical-align:-2px}
+  @keyframes bl{50%{opacity:0}}
+  #linha{display:flex;align-items:center;gap:8px;border-top:1px solid #1c222b;padding:10px 20px}
+  #linha .ps1{color:var(--grn);white-space:nowrap}
+  #cmd{flex:1;background:none;border:none;outline:none;color:var(--tx);font:inherit;font-size:13.5px}
+  a{color:var(--blu)}
+</style>
+</head>
+<body>
+<div id="tela"></div>
+<div id="linha"><span class="ps1">renata@micelio:~$</span><input id="cmd" autocomplete="off" spellcheck="false" autofocus></div>
+<script>
+const tela = document.getElementById('tela'), cmd = document.getElementById('cmd');
+const hist = []; let hi = -1;
+let D = null, CFG = JSON.parse(localStorage.getItem('terminal_cfg') || '{"provider":"kimi","apiKey":"","model":"kimi-k2-0905-preview"}');
+const FALLBACK = { semana:'2026-09-30', marca:'Micélio & Cia',
+  metricas:{denominador:80, presenca:{n:22,pct:27}, citacao:{n:14}, ranking_medio:2.4, ranking_1:8},
+  fila:['aprovar e-mail de pauta para "como vender cogumelos para supermercado"',
+        'página "quanto cobrar em feira por 200 g": público fora do cluster (0,83)',
+        'responder avaliação: "chegou um dia depois do combinado"'],
+  publicadas:[{url:'https://comovendercogumelos.com.br/onde-vender-cogumelos-frescos'},{url:'https://comovendercogumelos.com.br/quanto-custa-comecar-shiitake'}],
+  custo:{porApi:{cloro:12.8,claude:1.35,serpapi:0.6},total:14.75} };
+
+function out(html){ tela.insertAdjacentHTML('beforeend', html + '\n'); tela.scrollTop = tela.scrollHeight; }
+function eco(s){ out('<span class="d">'+s+'</span>'); }
+async function carregar(){ try{ const r = await fetch('dados/atual.json'); D = r.ok ? await r.json() : FALLBACK; }catch(e){ D = FALLBACK; } }
+
+const BANNER = `<span class="g">micélio-os v0.1</span> — terminal da máquina de vender
+código no controle · IA nas decisões · humana no portão
+digite <span class="b">ajuda</span> para os comandos · digite <span class="b">ia &lt;pergunta&gt;</span> para falar com o cérebro`;
+
+const CMDS = {
+  ajuda(){ out(`<span class="b">comandos</span>
+  status          presença, citação, ranking e custo da semana
+  fila            o que a máquina não decidiu sozinha
+  aprovar [n|tudo]   aprova item n (ou tudo) da fila
+  publicadas      páginas que o ciclo publicou
+  custo           gasto por API (teto US$ 120/mês)
+  proxima         a próxima melhor jogada, segundo os dados
+  config          mostra como o cérebro (IA) está conectado
+  config chave &lt;sua-chave&gt;   conecta a API do Kimi (Moonshot)
+  config modelo &lt;nome&gt;        troca o modelo do cérebro
+  medir           dispara A0 (medir as IAs) — precisa de chaves no pipeline
+  rodar           roda o ciclo semanal inteiro — precisa de chaves no pipeline
+  limpar          limpa a tela`); },
+  status(){ const m = D.metricas;
+    out(`<span class="g">semana ${D.semana}</span> · ${D.marca}
+presença   <span class="g">${m.presenca.pct}%</span>  (${m.presenca.n} de ${m.denominador})
+citação    ${Math.round(100*m.citacao.n/m.denominador)}%  (${m.citacao.n} links)
+ranking    médio ${m.ranking_medio} · ${m.ranking_1} respostas em 1º
+custo      US$ ${D.custo.total.toFixed(2)} / teto US$ 120 mês
+meta 90d   presença 80% · ranking 1 em 60%`); },
+  fila(){ if(!D.fila.length) return out('<span class="g">fila vazia — a máquina publicou sozinha.</span>');
+    D.fila.forEach((f,i)=>out(`  <span class="a">[${i}]</span> ${f.texto||f}`)); },
+  publicadas(){ out(D.publicadas.map(p=>'  <a href="'+p.url+'" target="_blank">'+p.url.replace('https://','')+'</a>').join('\n') || '  nada publicado ainda'); },
+  custo(){ out(Object.entries(D.custo.porApi).map(([a,v])=>'  '+a.padEnd(10)+'US$ '+v.toFixed(3)).join('\n')+'\n  <span class="b">total</span>     US$ '+D.custo.total.toFixed(3)); },
+  proxima(){ const buracos = D.deteccoes ? [...new Set(D.deteccoes.filter(d=>!d.presenca).map(d=>d.pergunta))] : [];
+    out(`<span class="b">próxima jogada</span>
+1. buracos com maior volume: ${buracos.slice(0,3).join(' · ')||'carregar dados reais para ver'}
+2. ranking 2→1: páginas citadas mas atrás do Sebrae precisam de número mais recente que o deles
+3. AI Overview ainda não cita: precisa de reviews Google (meta: 50, nota 4,7) e menções externas
+regra de ouro: presença &lt; 20% no dia 45 = tese errada, projeto para`); },
+  config(){ out(`cérebro: ${CFG.provider} · modelo: ${CFG.model}
+chave: ${CFG.apiKey ? CFG.apiKey.slice(0,8)+'…' : '<span class="r">não conectada</span>'}
+<a href="https://platform.moonshot.ai" target="_blank">plataforma.moonshot.ai</a> → API Keys → config chave &lt;sua-chave&gt;`); },
+  medir(){ out('<span class="a">A0 roda no pipeline (GitHub Actions, seg 06:00). Aqui no terminal ele é acionado com chaves no .env do repo.</span>'); },
+  rodar(){ out('<span class="a">o ciclo completo é o job semanal do GitHub Actions. push na main dispara manualmente.</span>'); },
+  limpar(){ tela.innerHTML=''; },
+};
+
+async function cerebro(pergunta){
+  if(!CFG.apiKey){ out('<span class="r">cérebro desconectado.</span> rode: config chave &lt;sua-chave&gt;  (<a href="https://platform.moonshot.ai" target="_blank">plataforma.moonshot.ai</a>)'); return; }
+  out('<span class="d">pensando…</span>');
+  const sys = `Você é o cérebro da máquina de crescimento da Micélio & Cia (produtora de cogumelos, Mogi das Cruzes). Objetivo: ser a primeira marca citada pelas IAs quando alguém pergunta como vender cogumelos. Dados atuais: presença ${D.metricas.presenca.pct}%, citação ${Math.round(100*D.metricas.citacao.n/D.metricas.denominador)}%, ranking médio ${D.metricas.ranking_medio}. Fila do operador: ${D.fila.join('; ')}. Responda em português, curto, direto, com a próxima ação concreta.`;
+  const base = CFG.provider === 'kimi' ? 'https://api.moonshot.ai/v1' : CFG.provider;
+  try{
+    const r = await fetch(base + '/chat/completions', { method:'POST',
+      headers:{ Authorization:'Bearer '+CFG.apiKey, 'Content-Type':'application/json' },
+      body: JSON.stringify({ model: CFG.model, messages:[{role:'system',content:sys},{role:'user',content:pergunta}], temperature:0.4 }) });
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error?.message || r.status);
+    out('<span class="g">máquina&gt;</span> ' + j.choices[0].message.content);
+  }catch(e){ out('<span class="r">erro: '+e.message+'</span>'); }
+}
+
+async function executar(linha){
+  out('<span class="d">renata@micelio:~$</span> ' + linha.replace(/</g,'&lt;'));
+  const [c, ...rest] = linha.trim().split(/\s+/);
+  if(!c) return;
+  if(c === 'ia') return cerebro(rest.join(' '));
+  if(c === 'aprovar'){ const alvo = rest[0];
+    if(alvo === 'tudo'){ D.fila = []; return out('<span class="g">fila aprovada inteira. próximo ciclo publica.</span>'); }
+    const i = parseInt(alvo); if(isNaN(i) || !D.fila[i]) return out('<span class="r">item não existe. rode: fila</span>');
+    out('<span class="g">aprovado:</span> ' + (D.fila[i].texto||D.fila[i])); D.fila.splice(i,1); return; }
+  if(c === 'config'){ const [k2, ...v] = rest;
+    if(k2 === 'chave'){ CFG.apiKey = v.join(' '); }
+    else if(k2 === 'modelo'){ CFG.model = v.join(' '); }
+    else if(k2 === 'provider'){ CFG.provider = v.join(' '); }
+    else return CMDS.config();
+    localStorage.setItem('terminal_cfg', JSON.stringify(CFG));
+    return out('<span class="g">config salvo.</span> rode: config'); }
+  (CMDS[c] || (()=>out(`<span class="r">comando desconhecido:</span> ${c} — digite ajuda`)))();
+}
+
+cmd.addEventListener('keydown', async e => {
+  if(e.key === 'Enter'){ const v = cmd.value; cmd.value=''; if(v.trim()){ hist.push(v); hi = hist.length; } await executar(v); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); if(hi>0){ hi--; cmd.value = hist[hi]||''; } }
+  else if(e.key === 'ArrowDown'){ e.preventDefault(); if(hi<hist.length-1){ hi++; cmd.value = hist[hi]; } else { hi = hist.length; cmd.value=''; } }
+});
+document.getElementById('linha').addEventListener('click', ()=>cmd.focus());
+
+await carregar();
+out(BANNER); CMDS.status();
+out('\n<span class="d">dica: pergunte <span class="b">ia qual a próxima melhor jogada com meus números?</span></span>');
+</script>
+</body>
+</html>
