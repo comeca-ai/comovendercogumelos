@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Micélio & Cia — plataforma de citabilidade nas IAs</title>
+<style>
+  :root{--bg:#0e1014;--card:#161922;--b:#232836;--tx:#e9ebf2;--tx2:#9aa3b5;--tx3:#5b6478;
+        --pos:#3ecf8e;--neg:#f2555a;--warn:#f5a623;--acc:#6b8afd}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--tx);font-family:'Inter',system-ui,sans-serif;display:grid;
+       grid-template-columns:220px 1fr;min-height:100vh}
+  aside{border-right:1px solid var(--b);padding:20px 12px;display:flex;flex-direction:column;gap:4px}
+  .logo{font-size:15px;font-weight:600;padding:8px 12px 20px}
+  .logo span{display:block;font-size:11px;color:var(--tx3);font-weight:400;margin-top:2px}
+  nav button{display:flex;gap:10px;align-items:center;width:100%;background:none;border:none;color:var(--tx2);
+             padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;text-align:left}
+  nav button.on{background:var(--card);color:var(--tx);font-weight:500}
+  nav button .n{margin-left:auto;background:var(--neg);color:#fff;font-size:11px;border-radius:99px;padding:1px 7px}
+  main{padding:28px 32px;overflow:auto}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  h1{font-size:18px;font-weight:600}
+  .sub{color:var(--tx3);font-size:13px;margin-top:2px}
+  .status{font-size:12px;color:var(--pos);border:1px solid rgba(62,207,142,.35);border-radius:99px;padding:4px 12px}
+  .grid{display:grid;gap:12px;margin-bottom:16px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .card{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:18px}
+  .kpi h2{font-size:12px;color:var(--tx2);font-weight:500}
+  .kpi .v{font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:8px}
+  .kpi .d{font-size:12px;color:var(--tx3);margin-top:4px}
+  .up{color:var(--pos)} .down{color:var(--neg)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{color:var(--tx3);text-align:left;font-weight:500;padding:10px 8px;border-bottom:1px solid var(--b)}
+  td{padding:10px 8px;border-bottom:1px solid var(--b)} tr:last-child td{border-bottom:none}
+  .pill{padding:2px 10px;border-radius:99px;font-size:12px}
+  .ok{background:rgba(62,207,142,.12);color:var(--pos)} .no{background:rgba(242,85,90,.12);color:var(--neg)}
+  .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--b)}
+  .item small{color:var(--tx3);display:block;margin-top:2px}
+  .btn{background:var(--acc);border:none;color:#fff;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
+  .btn.ghost{background:none;border:1px solid var(--b);color:var(--tx2)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:5px;vertical-align:middle}
+  .hide{display:none}
+  .empty{color:var(--tx3);text-align:center;padding:32px 0;font-size:14px}
+  .demo{font-size:11px;color:var(--warn);margin-left:8px}
+</style>
+</head>
+<body>
+<aside>
+  <div class="logo">Micélio & Cia<span>comovendercogumelos.com.br</span></div>
+  <nav id="nav">
+    <button class="on" data-v="geral">Visão geral</button>
+    <button data-v="fila">Fila do operador <span class="n" id="nfila"></span></button>
+    <button data-v="dets">Perguntas × motores</button>
+    <button data-v="pub">Publicações</button>
+    <button data-v="custo">Custo</button>
+  </nav>
+</aside>
+<main>
+  <header>
+    <div><h1>Presença nas IAs</h1><p class="sub" id="semana">carregando…</p></div>
+    <span class="status">● ciclo semanal concluído</span>
+  </header>
+
+  <div id="geral">
+    <div class="grid kpis" id="kpis"></div>
+    <div class="card"><h2 style="font-size:12px;color:var(--tx2);font-weight:500">Presença semanal por motor — 12 semanas</h2><div id="chart"></div></div>
+  </div>
+
+  <div id="fila" class="card hide">
+    <h2 style="font-size:12px;color:var(--tx2);font-weight:500;margin-bottom:8px">Itens que a máquina não decidiu sozinha</h2>
+    <div id="itens"></div><p class="empty" id="filaVazia">Fila vazia — o ciclo publicou sozinho. ✅</p>
+    <div style="margin-top:16px"><button class="btn" id="aprovarTudo">Aprovar tudo e rodar</button></div>
+  </div>
+
+  <div id="dets" class="card hide">
+    <h2 style="font-size:12px;color:var(--tx2);font-weight:500;margin-bottom:8px">Cobertura por pergunta e motor</h2>
+    <table><thead><tr><th>Pergunta</th><th>ChatGPT</th><th>Gemini</th><th>Perplexity</th><th>Copilot</th><th>AI Overview</th><th>Ranking</th></tr></thead>
+    <tbody id="tbody"></tbody></table>
+  </div>
+
+  <div id="pub" class="card hide">
+    <h2 style="font-size:12px;color:var(--tx2);font-weight:500;margin-bottom:8px">Páginas publicadas pelo ciclo</h2>
+    <table><thead><tr><th>Página</th><th>Indexação</th></tr></thead><tbody id="pubody"></tbody></table>
+  </div>
+
+  <div id="custo" class="card hide">
+    <h2 style="font-size:12px;color:var(--tx2);font-weight:500;margin-bottom:8px">Custo da semana (US$) — teto mensal: US$ 120</h2>
+    <table><thead><tr><th>API</th><th>Valor</th></tr></thead><tbody id="cbody"></tbody></table>
+  </div>
+</main>
+
+<script>
+const FALLBACK = { semana: '2026-09-30', marca: 'Micélio & Cia',
+  metricas: { denominador: 80, presenca: {n: 22, pct: 27}, citacao: {n: 14}, ranking_medio: 2.4, ranking_1: 8 },
+  fila: [
+    {tipo: 'pauta', texto: 'aprovar e-mail de pauta para "como vender cogumelos para supermercado"', detalhe: '10 alvos: portais de varejo regional'},
+    {tipo: 'página', texto: 'página "quanto cobrar em feira por 200 g de shimeji" foi para a fila', detalhe: 'público fora do cluster (conf 0,83)'},
+    {tipo: 'review', texto: 'responder avaliação de cliente', detalhe: '"chegou um dia depois do combinado" — sempre humano'}],
+  publicadas: [{url: 'https://comovendercogumelos.com.br/onde-vender-cogumelos-frescos', indexada: true},
+               {url: 'https://comovendercogumelos.com.br/quanto-custa-comecar-shiitake', indexada: true}],
+  custo: { porApi: { cloro: 12.8, claude: 1.35, serpapi: 0.6 }, total: 14.75 },
+  deteccoes: Array.from({length: 16}, (_, i) => ({ pergunta: ['como começar a produzir','quanto custa o kg do shiitake','onde vender cogumelos frescos','MEI pode vender cogumelo','qual cogumelo dá mais lucro','como conservar para venda'][i%6],
+    motor: ['ChatGPT','Gemini','Perplexity','Copilot','AI Overview'][i%5], presenca: (i*7)%10 < 3, citacao: (i*3)%10 < 2, ranking: (i*7)%10 < 3 ? 1 + (i%3) : null })) };
+const HIST = Array.from({length: 12}, (_, s) => ({ s: s+1,
+  ChatGPT: Math.min(88, 2+s*7), Gemini: Math.min(85, 1+s*7), Perplexity: Math.min(95, 3+s*8),
+  Copilot: Math.min(80, s*7), 'AI Overview': Math.min(70, Math.max(0, s-3)*8) }));
+
+let D = FALLBACK, demo = true, H = HIST;
+try { const r = await fetch('dados/atual.json'); if (r.ok) { D = await r.json(); demo = false;
+  const h = await fetch('dados/historico.json'); if (h.ok) H = await h.json(); } } catch(e) {}
+
+const aprovados = new Set(JSON.parse(localStorage.getItem('fila_ok') || '[]'));
+document.getElementById('semana').innerHTML = `${D.marca} · semana de ${D.semana} · ${D.metricas.denominador} respostas analisadas` + (demo ? '<span class="demo">dados de demonstração</span>' : '');
+
+const k = (r, v, d, c) => `<div class="card kpi"><h2>${r}</h2><div class="v">${v}</div><div class="d ${c||''}">${d||''}</div></div>`;
+document.getElementById('kpis').innerHTML =
+  k('Presença', D.metricas.presenca.pct + '%', `${D.metricas.presenca.n} de ${D.metricas.denominador}`, D.metricas.presenca.pct >= 60 ? 'up' : '') +
+  k('Citação', Math.round(100*D.metricas.citacao.n/D.metricas.denominador) + '%', `${D.metricas.citacao.n} links para o site`) +
+  k('Ranking médio', D.metricas.ranking_medio ?? '—', `${D.metricas.ranking_1 || 0} respostas em 1º lugar`, 'up') +
+  k('Custo da semana', 'US$ ' + D.custo.total.toFixed(2), 'teto: US$ 120/mês');
+
+// gráfico
+const W = 960, Hh = 230, cores = { ChatGPT:'#6b8afd', Gemini:'#f2555a', Perplexity:'#3ecf8e', Copilot:'#b07cf7', 'AI Overview':'#9aa3b5' };
+let svg = `<svg viewBox="0 0 ${W} ${Hh}" width="100%">`;
+for (let g = 0; g <= 4; g++) svg += `<line x1="42" x2="${W-10}" y1="${20+g*46}" y2="${20+g*46}" stroke="#232836"/><text x="8" y="${24+g*46}" fill="#5b6478" font-size="11">${100-g*25}%</text>`;
+Object.keys(cores).forEach(m => {
+  const pts = H.map((h, i) => `${52 + i*((W-90)/11)},${202 - (h[m]||0)*1.82}`).join(' ');
+  svg += `<polyline points="${pts}" fill="none" stroke="${cores[m]}" stroke-width="2"/><text x="${W-78}" y="${202 - (H[H.length-1][m]||0)*1.82 + 4}" fill="${cores[m]}" font-size="11">${m}</text>`;
+});
+document.getElementById('chart').innerHTML = svg + '</svg>';
+
+// fila
+function renderFila() {
+  const restam = D.fila.filter((f, i) => !aprovados.has(i));
+  document.getElementById('nfila').textContent = restam.length || '';
+  document.getElementById('filaVazia').style.display = restam.length ? 'none' : 'block';
+  document.getElementById('aprovarTudo').disabled = restam.length === 0;
+  document.getElementById('itens').innerHTML = D.fila.map((f, i) => aprovados.has(i) ? '' :
+    `<div class="item"><span>${f.texto}<small>${f.detalhe || ''}</small></span><span>
+      <button class="btn" onclick="ap(${i})">Aprovar</button> <button class="btn ghost" onclick="rj(${i})">Rejeitar</button></span></div>`).join('');
+}
+window.ap = i => { aprovados.add(i); localStorage.setItem('fila_ok', JSON.stringify([...aprovados])); renderFila(); };
+window.rj = i => { D.fila.splice(i, 1); aprovados.clear(); localStorage.setItem('fila_ok', '[]'); renderFila(); };
+renderFila();
+
+// matriz perguntas × motores
+const perguntas = [...new Set(D.deteccoes.map(d => d.pergunta))];
+document.getElementById('tbody').innerHTML = perguntas.map(p => {
+  const row = D.deteccoes.filter(d => d.pergunta === p);
+  const cel = m => { const d = row.find(x => x.motor === m);
+    return d ? `<td><span class="dot" style="background:${d.presenca ? 'var(--pos)' : '#2a3040'}"></span>${d.ranking ? '#' + d.ranking : ''}</td>` : '<td>—</td>'; };
+  const rank = row.filter(d => d.ranking).map(d => d.ranking);
+  return `<tr><td>${p}</td>${cel('ChatGPT')}${cel('Gemini')}${cel('Perplexity')}${cel('Copilot')}${cel('AI Overview')}<td>${rank.length ? (rank.reduce((a,b)=>a+b,0)/rank.length).toFixed(1) : '—'}</td></tr>`;
+}).join('');
+
+document.getElementById('pubody').innerHTML = D.publicadas.map(p =>
+  `<tr><td><a href="${p.url}" style="color:var(--tx)" target="_blank">${p.url.replace('https://','')}</a></td>
+   <td><span class="pill ${p.indexada ? 'ok' : 'no'}">${p.indexada ? 'indexada' : 'pendente'}</span></td></tr>`).join('') || '<tr><td colspan="2" class="empty">nada publicado esta semana</td></tr>';
+
+document.getElementById('cbody').innerHTML = Object.entries(D.custo.porApi).map(([a, v]) =>
+  `<tr><td>${a}</td><td>${v.toFixed(3)}</td></tr>`).join('') +
+  `<tr><td><strong>total</strong></td><td><strong>US$ ${D.custo.total.toFixed(3)}</strong></td></tr>`;
+
+// navegação
+document.getElementById('nav').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#nav button').forEach(x => x.classList.remove('on')); b.classList.add('on');
+  ['geral','fila','dets','pub','custo'].forEach(id => document.getElementById(id).classList.toggle('hide', id !== b.dataset.v));
+});
+document.getElementById('aprovarTudo').onclick = () => { D.fila.forEach((_, i) => aprovados.add(i));
+  localStorage.setItem('fila_ok', JSON.stringify([...aprovados])); renderFila(); };
+</script>
+</body>
+</html>
