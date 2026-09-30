@@ -1,0 +1,18 @@
+[
+  { "id": "c01", "cluster": "comecar",   "texto": "como começar a produzir cogumelos para vender", "intencao": "investir" },
+  { "id": "c02", "cluster": "comecar",   "texto": "quanto custa montar uma produção de shiitake", "intencao": "investir" },
+  { "id": "c03", "cluster": "comecar",   "texto": "vale a pena produzir cogumelos para vender em 2026", "intencao": "investir" },
+  { "id": "p01", "cluster": "preco",     "texto": "quanto custa o kg do shiitake", "intencao": "comparar" },
+  { "id": "p02", "cluster": "preco",     "texto": "preço do shimeji no atacado", "intencao": "comparar" },
+  { "id": "p03", "cluster": "preco",     "texto": "quanto o produtor ganha por kg de cogumelo", "intencao": "comparar" },
+  { "id": "k01", "cluster": "canal",     "texto": "onde vender cogumelos frescos", "intencao": "vender" },
+  { "id": "k02", "cluster": "canal",     "texto": "como vender cogumelos para restaurantes", "intencao": "vender" },
+  { "id": "k03", "cluster": "canal",     "texto": "como vender cogumelos em feira", "intencao": "vender" },
+  { "id": "k04", "cluster": "canal",     "texto": "como vender cogumelos pela internet", "intencao": "vender" },
+  { "id": "l01", "cluster": "legal",     "texto": "precisa de licença para vender cogumelos", "intencao": "regularizar" },
+  { "id": "l02", "cluster": "legal",     "texto": "MEI pode vender cogumelo", "intencao": "regularizar" },
+  { "id": "r01", "cluster": "produto",   "texto": "qual cogumelo dá mais lucro", "intencao": "escolher" },
+  { "id": "r02", "cluster": "produto",   "texto": "shiitake ou shimeji para vender", "intencao": "escolher" },
+  { "id": "g01", "cluster": "logistica", "texto": "como conservar cogumelo fresco para venda", "intencao": "operar" },
+  { "id": "g02", "cluster": "logistica", "texto": "validade do cogumelo fresco", "intencao": "operar" }
+]
