@@ -1,0 +1,3 @@
+# (seco) rascunho para: PERGUNTA: como começar a produzir cogumelos para vender para supermercado
+
+FATOS...
