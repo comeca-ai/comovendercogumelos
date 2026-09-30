@@ -1,0 +1,36 @@
+---
+import Autor from '../components/Autor.astro';
+const { frontmatter } = Astro.props;
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'Organization', name: 'Micélio & Cia', url: 'https://comovendercogumelos.com.br', founder: { '@type': 'Person', name: 'Renata Kimura', jobTitle: 'Engenheira agrônoma' } },
+    { '@type': 'Article', headline: frontmatter.title, dateModified: frontmatter.atualizado, author: { '@type': 'Person', name: frontmatter.autor }, about: frontmatter.pergunta },
+    ...(frontmatter.schema || []).filter((s) => ['FAQPage', 'HowTo'].includes(s)).map((s) => ({ '@type': s })),
+  ],
+};
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{frontmatter.title}</title>
+    <meta name="description" content={frontmatter.pergunta + ' — números com fonte, por Renata Kimura (Micélio & Cia, Mogi das Cruzes).'} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />
+  </head>
+  <body>
+    <header>
+      <a href="/">comovendercogumelos.com.br</a>
+      <p>Atualizado em {frontmatter.atualizado}</p>
+    </header>
+    <main>
+      <slot />
+      <Autor nome={frontmatter.autor} credencial={frontmatter.credencial} />
+      <section>
+        <h2>Fontes</h2>
+        <ul>{(frontmatter.fontes || []).map((f) => <li>{f}</li>)}</ul>
+      </section>
+    </main>
+  </body>
+</html>
